@@ -29,6 +29,8 @@ class UserManager(BaseUserManager):
         user.save()
 
         return user
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(db_index=True, max_length=255, unique=True)
     email = models.EmailField(db_index=True, unique=True)
@@ -41,26 +43,26 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['username']
 
     objects = UserManager()
-    
+
     def __str__(self):
         return self.email
-    
+
     @property
     def token(self):
         return self._generate_jwt_token()
-    
+
     def get_full_name(self):
         return self.username
-    
+
     def get_short_name(self):
         return self.username
-    
+
     # Method for generating JWT
     def _generate_jwt_token(self):
         date = datetime.now() + timedelta(days=30)
         token = jwt.encode({
             'id': self.pk,
-            'exp': int(date.strftime('%s'))
+            'exp': int(date.strftime("%S"))
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token.decode('utf-8')
