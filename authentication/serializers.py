@@ -56,3 +56,37 @@ class LoginSerializer(serializers.Serializer):
             'username': user.username,
             'token': user.token
         }
+
+
+class UserSerializer(serializers.ModelSerializer):
+    # Used to hanlde serialization and deserialization of User objects
+    # - password must be at least 8 chars long
+    password = serializers.CharField(
+        max_length=128,
+        min_length=8,
+        write_only=True
+    )
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'password', 'token',)
+
+        read_only_fields = ('token',)
+
+    def update(self, instance, validated_data):
+        # updating data - PUT/EDIT
+        # remove password field from validated_data
+
+        password = validated_data.pop('password', None)
+
+        for (key, value) in validated_data.items():
+            # for remaining keys in validated_data set them to the current 'User' instance
+            setattr(instance, key, value)
+
+        if password is not None:
+            # '.set_password()' - Django built in security functionlity for password
+            instance.set_password(password)
+
+        instance.save()
+
+        return instance
